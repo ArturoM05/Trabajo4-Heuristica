@@ -125,6 +125,7 @@ class DEVNDSearch:
     vnd_improve_n1: str   "BI"/"FI" para 2-opt                   (default "BI")
     vnd_improve_n2: str   "BI"/"FI" para Swap                    (default "BI")
     vnd_improve_n3: str   "BI"/"FI" para Insertion               (default "FI")
+    patience      : int   generaciones sin mejora antes de parar  (default 50)
     time_limit    : float segundos máximos totales                (default 3600)
     seed          : int   semilla aleatoria                       (default 42)
     """
@@ -138,6 +139,7 @@ class DEVNDSearch:
                  vnd_improve_n1: str = "BI",
                  vnd_improve_n2: str = "BI",
                  vnd_improve_n3: str = "FI",
+                 patience: int = 50,
                  time_limit: float = 3600.0,
                  seed: int = 42):
         self.n = n
@@ -152,6 +154,7 @@ class DEVNDSearch:
         self.vnd_improve_n1 = vnd_improve_n1.upper()
         self.vnd_improve_n2 = vnd_improve_n2.upper()
         self.vnd_improve_n3 = vnd_improve_n3.upper()
+        self.patience = patience   # generaciones sin mejora antes de parar
         self.time_limit = time_limit
         self.seed = seed
         self._algo = ConstructiveAlgorithm(n, m, operations, release_dates)
@@ -284,8 +287,11 @@ class DEVNDSearch:
 
         # ── Fase 2: Bucle de generaciones ─────────────────────────────
         generation = 0
+        no_improve_count = 0   # generaciones consecutivas sin mejora global
+
         while time.time() < deadline:
             generation += 1
+            improved_this_gen = False
 
             for j in range(self.NS):
                 # Verificar tiempo ANTES de cada individuo
@@ -312,12 +318,12 @@ class DEVNDSearch:
                         best_starts = trial_starts
                         best_seq = seq_list[j]
                         best_idx = j
+                        improved_this_gen = True
 
             # ── Fase VND: intensificación local sobre el mejor ─────────
             if generation % self.vnd_freq == 0:
                 vnd_dl = self._vnd_deadline(deadline)
                 if vnd_dl is None:
-                    # Sin tiempo suficiente para VND, salir del bucle principal
                     break
 
                 new_seq, new_flow, new_starts = _run_vnd_local(
@@ -326,7 +332,7 @@ class DEVNDSearch:
                     self.vnd_improve_n1,
                     self.vnd_improve_n2,
                     self.vnd_improve_n3,
-                    vnd_dl,        # deadline = min(global, presupuesto local)
+                    vnd_dl,
                 )
                 n_evaluations += 1
 
@@ -334,7 +340,6 @@ class DEVNDSearch:
                     best_flow = new_flow
                     best_starts = new_starts
                     best_seq = new_seq
-                    # Reinsertar el individuo mejorado reemplazando al peor
                     worst_idx = int(np.argmax(fitness))
                     new_keys = _starts_to_keys(new_starts, self.n)
                     pop[worst_idx] = new_keys
@@ -342,6 +347,15 @@ class DEVNDSearch:
                     starts_list[worst_idx] = new_starts
                     seq_list[worst_idx] = new_seq
                     best_idx = worst_idx
+                    improved_this_gen = True
+
+            # Criterio de parada por no mejora
+            if improved_this_gen:
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+                if no_improve_count >= self.patience:
+                    break
 
         computation_time = (time.time() - start_t) * 1000
         return best_starts, best_flow, computation_time, n_evaluations

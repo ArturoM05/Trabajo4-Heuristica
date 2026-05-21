@@ -89,6 +89,7 @@ class DESearch:
     NS         : int   tamaño de población                    (default 20)
     F          : float factor de escala de mutación ∈ (0,2]  (default 0.8)
     CR         : float tasa de cruce ∈ [0,1]                 (default 0.9)
+    patience   : int   generaciones sin mejora antes de parar (default 50)
     time_limit : float segundos máximos totales               (default 3600)
     seed       : int   semilla aleatoria                      (default 42)
     """
@@ -97,6 +98,7 @@ class DESearch:
                  NS: int = 20,
                  F: float = 0.8,
                  CR: float = 0.9,
+                 patience: int = 50,
                  time_limit: float = 3600.0,
                  seed: int = 42):
         self.n = n
@@ -106,6 +108,7 @@ class DESearch:
         self.NS = NS
         self.F = F
         self.CR = CR
+        self.patience = patience   # generaciones sin mejora antes de parar
         self.time_limit = time_limit
         self.seed = seed
         self._algo = ConstructiveAlgorithm(n, m, operations, release_dates)
@@ -236,8 +239,11 @@ class DESearch:
 
         # ── Fase 2: Bucle de generaciones ─────────────────────────────
         generation = 0
+        no_improve_count = 0   # generaciones consecutivas sin mejora global
+
         while time.time() < deadline:
             generation += 1
+            improved_this_gen = False
 
             for j in range(self.NS):
                 # Verificar tiempo ANTES de procesar cada individuo
@@ -265,6 +271,15 @@ class DESearch:
                         best_flow = trial_flow
                         best_starts = trial_starts
                         best_idx = j
+                        improved_this_gen = True
+
+            # Criterio de parada por no mejora
+            if improved_this_gen:
+                no_improve_count = 0
+            else:
+                no_improve_count += 1
+                if no_improve_count >= self.patience:
+                    break
 
         computation_time = (time.time() - start_t) * 1000
         return best_starts, best_flow, computation_time, n_evaluations

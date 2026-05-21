@@ -26,7 +26,7 @@ from read_instances import read_nwjssp_instance
 
 # ===========================================================================
 # ════════════════════════  CONFIGURACIÓN PRINCIPAL  ════════════════════════
-# ==========================================================================0=
+# ===========================================================================
 
 # Modo de ejecución: "final" | "parametric"
 MODE = "parametric"
@@ -52,7 +52,8 @@ TIME_LIMIT_PARAM = 300    # 5 min   (modo paramétrico)
 DE_PARAMS_FINAL = dict(
     NS=20,      # población: equilibrio diversidad/coste
     F=0.8,      # factor de escala clásico
-    CR=0.9,     # alta tasa de cruce
+    CR=0.5,     # alta tasa de cruce
+    patience=50,
     seed=42,
 )
 
@@ -60,53 +61,60 @@ DEVND_PARAMS_FINAL = dict(
     NS=15,              # población ligeramente menor (VND añade coste)
     F=0.8,
     CR=0.9,
-    vnd_freq=5,         # VND cada 5 generaciones
-    vnd_max_range=10,   # rango vecindarios VND
+    vnd_freq=10,         # VND cada 10 generaciones
+    vnd_max_range=10,
     vnd_improve_n1="BI",
     vnd_improve_n2="BI",
     vnd_improve_n3="FI",
+    patience=50,
     seed=42,
 )
 
 # ---------------------------------------------------------------------------
 # Configuraciones paramétricas (usadas en MODE="parametric")
 #
-# DE puro:   se varía NS (tamaño de población), F (escala) y CR (cruce).
+# DE puro:   se varía NS (tamaño de población), F (escala), CR (cruce)
+#            y patience (convergencia).
 # DE-VND:    además se varía vnd_freq (frecuencia del refinamiento VND).
 # ---------------------------------------------------------------------------
 
 DE_PARAM_CONFIGS = [
     # ── Variación de NS (tamaño de población) ────────────────────────
-    # Afecta diversidad y coste por generación
-    #("DE_NS10_F08_CR09",  dict(NS=10,  F=0.8, CR=0.9, seed=42)),
-    #("DE_NS20_F08_CR09",  dict(NS=20,  F=0.8, CR=0.9, seed=42)),   # <- final
-    #("DE_NS30_F08_CR09",  dict(NS=30,  F=0.8, CR=0.9, seed=42)),
+    ("DE_NS10_F08_CR09_p50",  dict(NS=10,  F=0.8, CR=0.9, patience=50, seed=42)),
+    ("DE_NS20_F08_CR09_p50",  dict(NS=20,  F=0.8, CR=0.9, patience=50, seed=42)),   # <- final
+    ("DE_NS30_F08_CR09_p50",  dict(NS=30,  F=0.8, CR=0.9, patience=50, seed=42)),
 
     # ── Variación de F (factor de escala de mutación) ─────────────────
-    # F pequeño → explotación; F grande → exploración
-    #("DE_NS20_F05_CR09",  dict(NS=20,  F=0.5, CR=0.9, seed=42)),
-    #("DE_NS20_F10_CR09",  dict(NS=20,  F=1.0, CR=0.9, seed=42)),
+    ("DE_NS20_F05_CR09_p50",  dict(NS=20,  F=0.5, CR=0.9, patience=50, seed=42)),
+    ("DE_NS20_F10_CR09_p50",  dict(NS=20,  F=1.0, CR=0.9, patience=50, seed=42)),
 
     # ── Variación de CR (tasa de cruce) ───────────────────────────────
-    # CR alto → más información del mutante; CR bajo → más del objetivo
-    #("DE_NS20_F08_CR05",  dict(NS=20,  F=0.8, CR=0.5, seed=42)),
-    #("DE_NS20_F08_CR07",  dict(NS=20,  F=0.8, CR=0.7, seed=42)),
+    ("DE_NS20_F08_CR05_p50",  dict(NS=20,  F=0.8, CR=0.5, patience=50, seed=42)),
+    ("DE_NS20_F08_CR07_p50",  dict(NS=20,  F=0.8, CR=0.7, patience=50, seed=42)),
+
+    # ── Variación de patience (criterio de convergencia) ──────────────
+    # Permite ver el efecto del criterio de parada por no mejora
+    ("DE_NS20_F08_CR09_p20",  dict(NS=20,  F=0.8, CR=0.9, patience=20,  seed=42)),
+    ("DE_NS20_F08_CR09_p100", dict(NS=20,  F=0.8, CR=0.9, patience=100, seed=42)),
 ]
 
 DEVND_PARAM_CONFIGS = [
     # ── Variación de NS ───────────────────────────────────────────────
-    #("DEVND_NS10_F08_CR09_vf5",  dict(NS=10,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", seed=42)),
-    #("DEVND_NS15_F08_CR09_vf5",  dict(NS=15,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", seed=42)),  # <- final
-    #("DEVND_NS20_F08_CR09_vf5",  dict(NS=20,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", seed=42)),
+    ("DEVND_NS10_F08_CR09_vf5_p50",  dict(NS=10,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=50, seed=42)),
+    ("DEVND_NS15_F08_CR09_vf5_p50",  dict(NS=15,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=50, seed=42)),  # <- final
+    ("DEVND_NS20_F08_CR09_vf5_p50",  dict(NS=20,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=50, seed=42)),
 
     # ── Variación de vnd_freq (frecuencia del refinamiento VND) ──────
-    # Frecuencia alta → más intensificación; baja → más exploración DE
-    #("DEVND_NS15_F08_CR09_vf2",  dict(NS=15,  F=0.8, CR=0.9, vnd_freq=2,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", seed=42)),
-    #("DEVND_NS15_F08_CR09_vf10", dict(NS=15,  F=0.8, CR=0.9, vnd_freq=10, vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", seed=42)),
+    ("DEVND_NS15_F08_CR09_vf2_p50",  dict(NS=15,  F=0.8, CR=0.9, vnd_freq=2,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=50, seed=42)),
+    ("DEVND_NS15_F08_CR09_vf10_p50", dict(NS=15,  F=0.8, CR=0.9, vnd_freq=10, vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=50, seed=42)),
 
     # ── Variación de F ────────────────────────────────────────────────
-    #("DEVND_NS15_F05_CR09_vf5",  dict(NS=15,  F=0.5, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", seed=42)),
-    ("DEVND_NS15_F10_CR09_vf5",  dict(NS=15,  F=1.0, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", seed=42)),
+    ("DEVND_NS15_F05_CR09_vf5_p50",  dict(NS=15,  F=0.5, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=50, seed=42)),
+    ("DEVND_NS15_F10_CR09_vf5_p50",  dict(NS=15,  F=1.0, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=50, seed=42)),
+
+    # ── Variación de patience ─────────────────────────────────────────
+    ("DEVND_NS15_F08_CR09_vf5_p20",  dict(NS=15,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=20,  seed=42)),
+    ("DEVND_NS15_F08_CR09_vf5_p100", dict(NS=15,  F=0.8, CR=0.9, vnd_freq=5,  vnd_max_range=10, vnd_improve_n1="BI", vnd_improve_n2="BI", vnd_improve_n3="FI", patience=100, seed=42)),
 ]
 
 # ===========================================================================
