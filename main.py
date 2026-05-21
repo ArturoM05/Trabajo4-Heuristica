@@ -29,7 +29,7 @@ from read_instances import read_nwjssp_instance
 # ===========================================================================
 
 # Modo de ejecución: "final" | "parametric"
-MODE = "final"
+MODE = os.getenv("MODE", "parametric")
 
 # En modo final puede ejecutarse solo un algoritmo si se especifica:
 #   FINAL_ALGO_MODE=de       -> solo DE puro
@@ -38,8 +38,8 @@ MODE = "final"
 FINAL_ALGO_MODE = os.getenv("FINAL_ALGO_MODE", "both").lower()
 
 # Directorio con los archivos .txt de instancias
-INSTANCES_DIR       = "instances"
-INSTANCES_DIR_PARA  = "instances_parametric"
+INSTANCES_DIR       = os.getenv("INSTANCES_DIR", "instances")
+INSTANCES_DIR_PARA  = os.getenv("INSTANCES_DIR_PARA", "instances_parametric")
 
 # Tiempo límite POR EJECUCIÓN de algoritmo
 TIME_LIMIT       = 3600   # 1 hora  (modo final)
