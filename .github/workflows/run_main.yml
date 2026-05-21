@@ -1,0 +1,58 @@
+name: Ejecutar main.py
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  run-de:
+    runs-on: ubuntu-latest
+    env:
+      MODE: final
+      FINAL_ALGO_MODE: de
+      INSTANCES_DIR: instances
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy openpyxl
+
+      - name: Ejecutar main.py (DE)
+        run: |
+          echo "Modo final: algoritmo=de"
+          python main.py
+
+  run-devnd:
+    runs-on: ubuntu-latest
+    env:
+      MODE: final
+      FINAL_ALGO_MODE: devnd
+      INSTANCES_DIR: instances
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy openpyxl
+
+      - name: Ejecutar main.py (DE-VND)
+        run: |
+          echo "Modo final: algoritmo=devnd"
+          python main.py
