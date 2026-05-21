@@ -13,6 +13,7 @@ jobs:
       MODE: final
       FINAL_ALGO_MODE: de
       INSTANCES_DIR: instances
+      PYTHONUNBUFFERED: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,6 +39,7 @@ jobs:
       MODE: final
       FINAL_ALGO_MODE: devnd
       INSTANCES_DIR: instances
+      PYTHONUNBUFFERED: 1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
