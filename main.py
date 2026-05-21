@@ -29,7 +29,7 @@ from read_instances import read_nwjssp_instance
 # ===========================================================================
 
 # Modo de ejecución: "final" | "parametric"
-MODE = "parametric"
+MODE = "final"
 
 # En modo final puede ejecutarse solo un algoritmo si se especifica:
 #   FINAL_ALGO_MODE=de       -> solo DE puro
