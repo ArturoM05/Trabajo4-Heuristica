@@ -7,12 +7,27 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-de:
+  run-algorithms:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - algo: de
+            folder: instances_grandes
+          - algo: de
+            folder: instances_medianas
+          - algo: de
+            folder: instances_pequeñas
+          - algo: devnd
+            folder: instances_grandes
+          - algo: devnd
+            folder: instances_medianas
+          - algo: devnd
+            folder: instances_pequeñas
     env:
       MODE: final
-      FINAL_ALGO_MODE: de
-      INSTANCES_DIR: instances
+      FINAL_ALGO_MODE: ${{ matrix.algo }}
+      INSTANCES_DIR: ${{ matrix.folder }}
       PYTHONUNBUFFERED: 1
     steps:
       - name: Checkout repository
@@ -28,33 +43,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy openpyxl
 
-      - name: Ejecutar main.py (DE)
+      - name: Ejecutar main.py (${{ matrix.algo }} - ${{ matrix.folder }})
         run: |
-          echo "Modo final: algoritmo=de"
+          echo "Modo final: algoritmo=${{ matrix.algo }}, carpeta=${{ matrix.folder }}"
           python main.py
 
-  run-devnd:
-    runs-on: ubuntu-latest
-    env:
-      MODE: final
-      FINAL_ALGO_MODE: devnd
-      INSTANCES_DIR: instances
-      PYTHONUNBUFFERED: 1
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Upload Excel results
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install numpy openpyxl
-
-      - name: Ejecutar main.py (DE-VND)
-        run: |
-          echo "Modo final: algoritmo=devnd"
-          python main.py
+          name: excel-results-${{ matrix.algo }}-${{ matrix.folder }}
+          path: NWJSSP_ArturoMurgueytio_*.xlsx
+          retention-days: 30
